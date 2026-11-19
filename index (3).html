@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10242b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<title>Volver a 1998</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1a1f;color:#e8f1f2;font:15px/1.4 Verdana,Trebuchet MS,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#app{max-width:520px;margin:auto;padding:8px}header{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px}
+#dt{font-size:22px;font-weight:bold;color:#f2a93b}#ed{color:#9ec9d1}
+#hud{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0}.m{background:#17343d;border-radius:6px;padding:4px 6px;text-align:center}.m b{display:block;font-size:13px}.m i{font-size:10px;color:#9ec9d1;font-style:normal}
+.bars{grid-column:1/5;display:flex;gap:8px;align-items:center;justify-content:space-between}.b{flex:1;display:flex;align-items:center;gap:3px;font-size:12px}.b u{flex:1;height:7px;background:#0b1a1f;border-radius:4px;overflow:hidden;display:block}.b s{display:block;height:100%}
+canvas{width:100%;display:block;border:2px solid #f2a93b;border-radius:8px;image-rendering:pixelated;touch-action:manipulation}
+#tick{font-size:12px;color:#b9d6db;min-height:50px;margin:6px 2px}#tick div{margin:2px 0}
+#pn{background:#17343d;border-radius:8px;padding:8px 10px}#pn h3{margin:0 0 6px;color:#f2a93b}#pn p{margin:5px 0;font-size:13px}
+button{font:inherit;font-size:14px;background:#24505c;color:#fff;border:0;border-radius:6px;padding:8px 10px;margin:3px 3px 3px 0;cursor:pointer}button:disabled{opacity:.4}button:active{background:#f2a93b;color:#10242b}
+.chips{display:flex;gap:4px;margin:4px 0}.chips button{flex:1;margin:0}.chips .on{background:#f2a93b;color:#10242b}
+nav{display:flex;gap:4px;margin-top:8px;position:sticky;bottom:4px}nav button{flex:1;margin:0;background:#f2a93b;color:#10242b;font-weight:bold;padding:10px 4px}nav button+button{background:#24505c;color:#fff;flex:.6}
+#md{position:fixed;inset:0;background:rgba(5,12,15,.85);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}#md[hidden]{display:none}
+#mb{background:#17343d;border:2px solid #f2a93b;border-radius:10px;padding:14px;max-width:500px;width:100%;max-height:88vh;overflow:auto}#mb h3{margin:0 0 8px;color:#f2a93b}
+#mb .x{background:#0b1a1f;width:100%;margin-top:8px}.row{padding:5px 0;border-bottom:1px solid #24505c;font-size:13px}.s{font-size:12px;color:#9ec9d1}
+label{display:block;margin:6px 0;font-size:13px}input,select{font:inherit;background:#0b1a1f;color:#fff;border:1px solid #24505c;border-radius:5px;padding:6px;width:100%}
+#ts{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:#f2a93b;color:#10242b;padding:8px 14px;border-radius:8px;font-size:13px;max-width:90%;z-index:9;display:none}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:4px;border-bottom:1px solid #24505c;text-align:left;vertical-align:top}
+</style></head><body><div id="app">
+<header><span id="dt"></span><span id="ed"></span></header><div id="hud"></div>
+<canvas id="cv" width="360" height="210"></canvas><div id="tick"></div><div id="pn"></div>
+<nav><button id="bm">⏭ Pasar mes</button><button id="bs">⏩ Saltar</button><button id="bd">📓</button><button id="bl">🎟</button><button id="bn">⚙</button></nav></div>
+<div id="md" hidden><div id="mb"></div></div><div id="ts"></div>
+<script>
+const $=s=>document.querySelector(s),R=Math.random,F=Math.floor,C=(v,a,b)=>Math.max(a,Math.min(b,v)),fm=n=>Math.round(n).toLocaleString('es-UY');
+const MN=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'],END=344,KEY='volver98';
+const NM={pa:'Papá',ma:'Mamá',h1:'Carolina',h2:'Valeria',am:'Nico',es:'Lucía',hj:'Mateo'};
+const TR={pa:[25,'escéptico y protector'],ma:[50,'te cree por amor'],h1:[45,'práctica y directa'],h2:[40,'curiosa, pero chismosa'],am:[55,'leal y fanático de lo raro'],es:[50,'te escucha con calma']};
+// Precios ESTILIZADOS (aprox.), no cotizaciones reales exactas
+const AS={aapl:['Apple',1998,[1,2.6,1,1.4,1,1.5,3.5,8,7,15,7,15,23,30,42,35,55,55,60,90,100,150,230,280,270,350,430,480,500]],
+msft:['Microsoft',1998,[1,1.9,.9,.9,.6,.7,.7,.7,.8,.9,.6,1,.9,.9,1.1,1.3,1.8,2,2.3,3.2,3.6,5,6.5,8,6,8,10,11,11]],
+amzn:['Amazon',1998,[1,3,1.3,.8,1.2,2,2.5,2.2,2.5,5,3,7,10,10,12,18,15,35,40,60,80,80,130,140,90,130,160,200,210]],
+goog:['Google (sale a bolsa en 2004)',2004,[1,2.5,4,6,3,6,7,8,9,12,12,16,20,25,22,32,40,55,50,70,85,110,120]],
+btc:['Bitcoin (existe desde 2010)',2010,[.1,3,10,300,320,430,960,13800,3700,7200,29000,46000,16500,42000,93000,90000,90000]]};
+const FX=[10.5,11.4,12.5,13.3,21,28,27,24,24,23,21,20,20,19.5,19.5,20,23,27,29,28.5,31,32.5,37,40,44,40,39.5,40,41];
+const J=[{n:'Audiovisual',l:['Asistente de cámara','Camarógrafo','Realizador','Director'],s:[150,300,600,1200],h:1},
+{n:'Gastronomía',l:['Ayudante de cocina','Cocinero','Chef','Dueño de restaurante'],s:[130,280,550,1300],h:1},
+{n:'Informática',l:['Soporte técnico','Programador','Líder de sistemas','Dueño de software'],s:[200,450,900,1800],h:1},
+{n:'Comercio',l:['Vendedor','Encargado','Gerente','Dueño de comercio'],s:[140,300,650,1400],h:1},
+{n:'Medicina',l:['Estudiante','Residente','Médico','Especialista'],s:[0,250,800,1500],h:1.6},
+{n:'Derecho',l:['Pasante','Procurador','Abogado','Socio de estudio'],s:[100,300,700,1500],h:1.4},
+{n:'Música y arte',l:['Músico de bares','Banda estable','Artista conocido','Figura'],s:[80,200,500,1500],h:1.2},
+{n:'Oficios',l:['Ayudante','Oficial','Capataz','Dueño de empresa'],s:[150,320,600,1100],h:1}];
+const PL={casa:[50,55,'🏠','Casa','#c9704f'],estudio:[150,45,'🎓','Estudio','#4f7cc9'],plaza:[260,55,'🌳','Plaza','#59a35b'],banco:[50,150,'🏦','Banco','#b59a3a'],agencia:[150,155,'🎟️','Agencia','#c94f8a'],trabajo:[260,150,'💼','Trabajo','#7a5fc9']};
+const E=[[1998,6,'⚽ Francia campeón del mundo, 3-0 a Brasil. Uruguay no jugó.',1],[1999,0,'💶 Nace el euro.',1],[2000,0,'💻 El "efecto 2000" pasa sin drama.',1],
+[2001,8,'🏙️ 11 de setiembre: golpe al mundo.',1,()=>S.st+=10],[2001,11,'🇦🇷 Argentina entra en crisis y arrastra a la región.',1,()=>S.mood-=8],
+[2002,6,'🏦 Corrida bancaria: los depósitos en dólares en el banco quedan TRABADOS.',1,()=>{S.fz=1;S.st+=15}],[2002,7,'💸 El peso se devalúa fuerte: el dólar se dispara.',1],
+[2003,5,'🏦 Se destraban los depósitos (recuperás ~85%, simplificado).',0,()=>{S.fz=0;S.bk*=.85}],[2005,2,'🗳️ Cambio de gobierno en Uruguay.',1],
+[2008,8,'📉 Crisis financiera global: se hunden las bolsas.',1,()=>S.st+=8],[2009,0,'₿ Nace Bitcoin (todavía no cotiza).',1],
+[2010,6,'⚽ Uruguay 4º en el Mundial de Sudáfrica.',1,()=>S.mood+=10],[2011,6,'🏆 Uruguay campeón de la Copa América.',1,()=>S.mood+=6],
+[2020,2,'😷 Pandemia de COVID-19.',1,()=>{S.st+=15;S.par.pa-=R()*15;S.par.ma-=R()*15}]];
+const NB=[[2004,5,'h1','una sobrina'],[2008,8,'h1','un sobrino'],[2012,2,'h2','una sobrina']];
+const defLib=()=>[{k:'Q',y:1998,m:3,n:'472',p:7000,c:100,f:1},{k:'5',y:1998,m:7,n:'03 11 19 27 36',p:4500000,c:30,f:1},{k:'Q',y:1998,m:9,n:'815',p:7000,c:100,f:1},
+{k:'5',y:1999,m:1,n:'05 09 21 30 38',p:9000000,c:30,f:1},{k:'5',y:1999,m:8,n:'02 14 22 31 40',p:14000000,c:30,f:1},{k:'5',y:2000,m:4,n:'07 13 18 29 35',p:7000000,c:30,f:1},{k:'5',y:2001,m:2,n:'01 12 25 33 39',p:20000000,c:30,f:1}];
+let S,tgt=null,ply=[50,83],wk=0;
+const N=k=>S.names[k],yr=t=>1998+F((t+2)/12),mo=t=>(t+2)%12,age=t=>17+F(t/12),ds=(y,m)=>MN[m]+' '+y;
+const fx=()=>ip(FX,1998);function ip(a,y0){const y=yr(S.t);if(y<y0)return null;const i=Math.min(y-y0,a.length-1),j=Math.min(i+1,a.length-1);return a[i]*Math.pow(a[j]/a[i],mo(S.t)/12)}
+const px=a=>ip(AS[a][2],AS[a][1]);
+function nuevo(){S={t:0,pe:6000,us:0,bk:0,inv:{aapl:0,msft:0,amzn:0,goog:0,btc:0},job:-1,lvl:0,exp:0,sk:0,hp:85,mood:70,st:20,rep:50,rel:{pa:55,ma:60,h1:50,h2:50,am:60,es:0},told:{},bel:{},par:{pa:80,ma:80},dead:{},sp:0,kb:-1,nie:0,bf:0,susp:0,proof:0,pred:-1,ap:3,pos:'casa',fz:0,log:[],lib:defLib(),pen:0,end:0,amt:500,names:{...NM}};ply=[50,83];tgt=null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function L(m){S.log.push(ds(yr(S.t),mo(S.t))+' · '+m);if(S.log.length>400)S.log.shift();save()}
+function toast(m){const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(toast.i);toast.i=setTimeout(()=>t.style.display='none',3200)}
+function cl(){['hp','mood','st','rep','susp'].forEach(k=>S[k]=C(S[k],0,100));for(const k in S.rel)S.rel[k]=C(S.rel[k],0,100)}
+function use(){if(S.ap<=0){toast('No te queda tiempo este mes. Pasá al mes siguiente.');return 0}S.ap--;return 1}
+function go(fn){if(!use())return;fn();cl();ren()}
+function pay(u){const f=fx();if(S.pe/f+S.us+(S.fz?0:S.bk)<u-1e-9)return 0;let n=u,a=Math.min(S.pe/f,n);S.pe-=a*f;n-=a;a=Math.min(S.us,n);S.us-=a;n-=a;if(n>0)S.bk-=n;return 1}
+function wealth(){let w=S.pe/fx()+S.us+S.bk;for(const a in AS){const p=px(a);if(p!=null)w+=S.inv[a]*p}return w}
+const canBank=()=>age(S.t)>=18||S.rel.pa>=35||S.rel.ma>=35,canPlay=()=>age(S.t)>=18||['pa','ma','h1','h2'].some(k=>S.bel[k]&&!S.dead[k]);
+function bt(p,t,f,d){const b=document.createElement('button');b.textContent=t;b.disabled=!!d;b.onclick=f;p.appendChild(b);return b}
+function modal(fn){const b=$('#mb');b.innerHTML='';fn(b);bt(b,'Cerrar',()=>{$('#md').hidden=true;ren()}).className='x';$('#md').hidden=false}
+const bar=(e,v,c)=>`<span class=b>${e}<u><s style="width:${C(v,0,100)}%;background:${c}"></s></u></span>`;
+function ren(){const a=age(S.t);$('#dt').textContent=ds(yr(S.t),mo(S.t));$('#ed').textContent=a+' años · '+'⏳'.repeat(Math.max(0,S.ap))+' tiempo';
+$('#hud').innerHTML=`<div class=m><b>$${fm(S.pe)}</b><i>pesos</i></div><div class=m><b>US$${fm(S.us)}</b><i>en mano</i></div><div class=m><b>US$${fm(S.bk)}${S.fz?'🔒':''}</b><i>banco</i></div><div class=m><b>US$${fm(wealth())}</b><i>total</i></div><div class=bars>${bar('❤️',S.hp,'#f87171')}${bar('🙂',S.mood,'#fbbf24')}${bar('😰',S.st,'#a78bfa')}${bar('🕵️',S.susp,'#94a3b8')}<span>🦋${S.bf}</span></div>`;
+$('#tick').innerHTML=S.log.slice(-3).map(x=>'<div>'+x+'</div>').join('');panel()}
+function panel(){const p=$('#pn');p.innerHTML='';const P=PL[S.pos],h=document.createElement('h3');h.textContent=P[2]+' '+P[3];p.appendChild(h);
+if(tgt){p.append('Caminando...');return}ACTS[S.pos]().forEach(x=>{if(typeof x=='string'){const d=document.createElement('p');d.innerHTML=x;p.appendChild(d)}else if(x instanceof Node)p.appendChild(x);else bt(p,x[0],x[1],x[2])})}
+function chips(){const d=document.createElement('div');d.className='chips';[100,500,2000,10000].forEach(v=>{const b=bt(d,'US$'+fm(v),()=>{S.amt=v;ren()});if(S.amt==v)b.className='on'});return d}
+const ACTS={
+casa:()=>{const r=[`Tu familia: ${N('pa')}, ${N('ma')}, ${N('h1')} y ${N('h2')}.`,['😴 Descansar',()=>go(()=>{S.hp+=8;S.st-=12;S.mood+=5;L('Descansás en casa.')})]];
+['pa','ma','h1','h2'].forEach(k=>{if(!S.dead[k])r.push(['👨‍👩‍👧 Pasar tiempo con '+N(k)+' ('+F(S.rel[k])+')',()=>go(()=>{S.rel[k]+=9;S.mood+=4;S.st-=3;L('Pasás tiempo con '+N(k)+'.')})])});
+['pa','ma'].forEach(k=>{if(!S.dead[k])r.push([`🩺 Chequeo médico a ${N(k)} (US$40)`,()=>{if(S.ap<=0)return use();if(!pay(40))return toast('No te alcanza la plata');S.ap--;S.par[k]=C(S.par[k]+12,0,100);L('Llevás a '+N(k)+' al médico.');ren()}])});
+r.push(S.pred<0?['📓 Anotar predicciones (para demostrar que sabés el futuro)',()=>go(()=>{S.pred=S.t;L('Anotás en un cuaderno lo que va a pasar: Mundial 98, euro, 11-S, crisis 2002...')})]:'📓 Tus predicciones ya están anotadas'+(S.proof?' y se cumplieron.':'.'));
+r.push(['🗣️ Contarle tu secreto a alguien de la familia',()=>openTell(['pa','ma','h1','h2'])]);return r},
+estudio:()=>[`Habilidad acumulada: ${S.sk}. Estudiar acelera tus ascensos.`,['📚 Estudiar un mes (+3)',()=>go(()=>{S.sk+=3;S.st+=3;L('Estudiás a fondo.')})]],
+plaza:()=>{const r=[['⚽ Salir con '+N('am')+' ('+F(S.rel.am)+')',()=>go(()=>{S.rel.am+=9;S.mood+=8;S.st-=4;L('Salís con '+N('am')+'.')})]];
+if(!S.told.am)r.push(['🗣️ Contarle tu secreto a '+N('am'),()=>tell('am')]);
+if(S.sp==0&&yr(S.t)>=2003)r.push(['💘 Buscar a '+N('es'),()=>go(()=>{if(R()*100<40+S.mood*.3+(S.job>=0?10:0)){S.sp=1;S.rel.es=25;S.bf+=2;L('Conocés a '+N('es')+'. Algo hay ahí.')}else L('No encontrás a '+N('es')+' esta vez...')})]);
+if(S.sp==0&&yr(S.t)<2003)r.push('Todavía no es momento de buscar a '+N('es')+'.');
+if(S.sp==1||S.sp==2){r.push(['❤️ Pasar tiempo con '+N('es')+' ('+F(S.rel.es)+')',()=>go(()=>{S.rel.es+=10;S.mood+=8;S.st-=4;L('Tiempo con '+N('es')+'.')})]);
+if(!S.told.es)r.push(['🗣️ Contarle tu secreto a '+N('es'),()=>tell('es')])}
+if(S.sp==1)r.push(['💍 Casarte con '+N('es')+' (relación ≥60, 24+ años)',()=>go(()=>{S.sp=2;S.bf++;L('💍 Te casás con '+N('es')+'.')}),!(S.rel.es>=60&&age(S.t)>=24)]);
+if(S.sp==2&&S.kb<0)r.push(['👶 Buscar un hijo',()=>go(()=>{S.kb=S.t+9;S.bf+=2;L('Esperan un hijo.')})]);
+if(S.kb>=0&&S.t>=S.kb)r.push(['🧸 Jugar con '+N('hj'),()=>go(()=>{S.rel.hj+=10;S.mood+=8;S.st-=5;L('Tiempo con '+N('hj')+'.')})]);
+if(S.sp==3)r.push('Tu matrimonio terminó.');return r},
+banco:()=>{const r=['Dólar: $'+fx().toFixed(1)+(S.fz?' · 🔒 Depósitos trabados.':''),chips()];
+if(!canBank())return r.concat(['Siendo menor necesitás que papá o mamá (relación ≥35) te acompañen.']);
+r.push(['💵 Comprar US$ con pesos',()=>{const c=S.amt*fx();if(S.pe<c)return toast('No te alcanzan los pesos');S.pe-=c;S.us+=S.amt;ren()}],['⬇️ Depositar US$ en el banco',()=>{if(S.us<S.amt)return toast('No tenés ese efectivo en dólares');S.us-=S.amt;S.bk+=S.amt;ren()}],
+['⬆️ Retirar US$ del banco',()=>{if(S.fz)return toast('Depósitos trabados');if(S.bk<S.amt)return toast('No tenés tanto en el banco');S.bk-=S.amt;S.us+=S.amt;ren()}],['💰 Vender US$ por pesos',()=>{if(S.us<S.amt)return toast('No tenés ese efectivo');S.us-=S.amt;S.pe+=S.amt*fx();ren()}]);
+if(age(S.t)<18)return r.concat(['Para invertir en bolsa necesitás tener 18.']);
+r.push('<b>Broker en el exterior</b> (usa tu efectivo en US$ o pesos)');
+for(const a in AS){const p=px(a);r.push(p==null?AS[a][0]+': todavía no cotiza':`${AS[a][0]}: US$${p<10?p.toFixed(2):fm(p)} · tenés US$${fm(S.inv[a]*p)}`);if(p!=null)r.push(['Comprar',()=>buy(a)],['Vender',()=>sell(a)])}return r},
+agencia:()=>{const r=['Jugás con tu libreta de números del futuro (editala en 🎟). Los sorteos se resuelven al pasar al mes del sorteo.'];if(!canPlay())r.push('Necesitás 18 años, o que un familiar adulto que te crea juegue por vos.');
+const now=yr(S.t)*12+mo(S.t);S.lib.filter(d=>!d.res&&d.y*12+d.m>now).sort((a,b)=>a.y*12+a.m-b.y*12-b.m).slice(0,8).forEach(d=>r.push([`${d.b?'✅':'🎫'} ${d.k=='5'?'5 de Oro':'Quiniela'} ${ds(d.y,d.m)} · ${d.n} · $${fm(d.p)} (boleto $${d.c})`,()=>{if(S.pe<d.c)return toast('No te alcanzan los pesos');S.pe-=d.c;d.b=1;L('🎫 Jugás '+(d.k=='5'?'5 de Oro':'Quiniela')+' '+ds(d.y,d.m)+(age(S.t)<18?' (juega un familiar por vos)':''));ren()},d.b||!canPlay()]));return r},
+trabajo:()=>{const r=[],a=age(S.t);
+if(S.job>=0){const j=J[S.job];r.push(`${j.n}: ${j.l[S.lvl]} · US$${j.s[S.lvl]}/mes · ${S.exp} meses de experiencia`,['💪 Esforzarte (+2 de experiencia)',()=>go(()=>{S.exp+=2;S.st+=6;L('Te rompés el lomo trabajando.')})],['🚪 Renunciar',()=>{S.job=-1;S.bf++;L('Renunciás.');ren()}])}
+else if(a>=18){r.push('Elegí tu rubro:');J.forEach((j,i)=>r.push([`${j.n} (empezás en US$${j.s[0]}/mes)`,()=>{S.job=i;S.lvl=0;S.exp=0;S.bf+=2;L('Empezás en '+j.n+': '+j.l[0]);ren()}]))}else r.push('Sos menor: por ahora, changas para ahorrar.');
+[['🖥️ Arreglar PCs (US$60)',60],['📚 Clases particulares (US$40)',40],['📣 Repartir volantes (US$25)',25]].forEach(([t,u])=>r.push([t,()=>go(()=>{S.pe+=u*fx();S.st+=3;L('Changa: ganás US$'+u)})]));return r}};
+function buy(a){const p=px(a);if(!pay(S.amt))return toast('No te alcanza el efectivo');S.inv[a]+=S.amt/p;if(S.amt>=2000)S.bf++;L(`Comprás US$${fm(S.amt)} de ${AS[a][0].split(' (')[0]}.`);ren()}
+function sell(a){const p=px(a),x=Math.min(S.inv[a]*p,S.amt);if(x<=0)return toast('No tenés de eso');S.inv[a]-=x/p;S.us+=x;L(`Vendés US$${fm(x)} de ${AS[a][0].split(' (')[0]}.`);ren()}
+function openTell(ks){modal(b=>{b.innerHTML=`<h3>🗣️ Contar el secreto</h3><p class=s>Cada persona reacciona distinto. ${S.proof?'Tus predicciones cumplidas ayudan.':'Si primero anotás predicciones y se cumplen, te creen más.'} Quien te cree puede ayudarte (por ejemplo, jugar tus números siendo vos menor) y te alivia el estrés; quien no, puede asustarse o contarlo.</p>`;
+ks.forEach(k=>{if(!S.dead[k]&&!S.told[k])bt(b,`${N(k)} · ${TR[k][1]} · relación ${F(S.rel[k])}`,()=>{$('#md').hidden=true;tell(k)})})})}
+function tell(k){if(S.told[k]||!use())return;const t=TR[k];S.told[k]=1;S.bf++;const p=t[0]+S.rel[k]*.35+(S.proof?25:0)-10,r=R()*100;let m;
+if(r<p){S.bel[k]=1;S.rel[k]+=12;S.mood+=8;m=`${N(k)} te cree (${t[1]}). Ya no cargás solo con el secreto.`}
+else if(r<p+25){S.rel[k]-=5;S.mood-=6;m=`${N(k)} duda: piensa que es estrés o una broma.`}
+else if(k=='am'||k=='es'){S.rel[k]-=15;S.mood-=8;m=`${N(k)} se enoja: cree que le tomás el pelo.`}
+else{S.pen=1;S.rep-=10;S.mood-=8;m=`${N(k)} se asusta y te lleva a un psicólogo. Perdés tiempo y credibilidad.`}
+if((k=='h2'||k=='am')&&R()<.35){S.rep-=15;S.susp+=25;m+=' Y lo cuenta por ahí: el rumor se esparce.'}
+L(m);toast(m);cl();ren()}
+function mes(sk){S.t++;const y=yr(S.t),m=mo(S.t),a=age(S.t),f=fx();S.ap=Math.max(1,3-(S.job>=0&&a>=18?1:0)-S.pen);S.pen=0;
+if(S.job>=0&&a>=18){const j=J[S.job];S.exp++;S.pe+=j.s[S.lvl]*f;S.st+=2;const e=S.exp+S.sk*.8;let n=0;[0,10,30,60].forEach((t,i)=>{if(e>=t*j.h)n=i});if(n>S.lvl){S.lvl=n;L(`🎉 Ascenso: ${j.l[n]} (US$${j.s[n]}/mes)`);S.mood+=10}}
+if(a<18)S.pe+=500;
+if(a>=18){const g=140+(S.sp==2?100:0)+(S.kb>=0&&S.t>=S.kb?90:0);if(!pay(g)){S.mood-=8;S.st+=8;L('💸 No te alcanza la plata este mes.')}}
+S.bk*=1.0025;for(const k in S.rel){if(k=='es'&&S.sp==0)continue;S.rel[k]-=sk?1:.4}
+['pa','ma'].forEach(k=>{if(S.dead[k])return;S.par[k]-=R()*.4+(sk?.1:0);if(S.par[k]<=0){S.dead[k]=1;S.rel[k]=0;S.mood-=30;S.bf+=5;L('🕊️ '+N(k)+' falleció. En tu 2026 original estaba vivo/a.')}else if(S.par[k]<35&&R()<.15)L('⚠️ '+N(k)+' tuvo un susto de salud. Llevalo/a al médico.')});
+S.hp-=.1+S.st/400;S.st-=2+Object.keys(S.bel).length*.5;if(S.st>80){S.hp-=2;S.mood-=2}S.mood+=(60-S.mood)*.06;S.susp=Math.max(0,S.susp-.5);if(S.hp<=0)S.end=2;
+if(S.sp==1&&S.rel.es<15){S.sp=0;L('💔 Con '+N('es')+' se enfrió todo.')}
+if(S.sp==2&&S.rel.es<20){S.sp=3;S.bf+=3;S.mood-=25;L('💔 Tu matrimonio se rompe.')}
+if(S.t==S.kb){L('👶 Nace tu hijo/a '+N('hj')+'.');S.mood+=20;S.rel.hj=60}
+NB.forEach(n=>{if(n[0]==y&&n[1]==m){if(R()<Math.max(.4,1-S.bf*.03)){S.nie++;S.mood+=6;L('🍼 Nace '+n[3]+' de '+N(n[2])+'.')}else L('🦋 '+N(n[2])+' no tiene el bebé que tenía en tu 2026 original.')}});
+E.forEach(e=>{if(e[0]==y&&e[1]==m){L(e[2]);if(e[4])e[4]();if(e[3]&&S.pred>=0&&S.pred<S.t&&!S.proof){S.proof=1;L('🔮 Tus predicciones anotadas se están cumpliendo. Ahora te creerían más.')}}});
+S.lib.forEach(d=>{if(!d.res&&d.y==y&&d.m==m){d.res=1;if(d.b){S.pe+=d.p;S.bf+=3;S.susp+=(S.bel.pa||S.bel.ma)?10:30;S.mood+=15;L(`🎉 ¡GANASTE! ${d.k=='5'?'5 de Oro':'Quiniela'} (${d.n}): $${fm(d.p)}`)}else L('🎟️ Salió '+(d.k=='5'?'el 5 de Oro':'la Quiniela')+' y no jugaste ('+d.n+').')}});
+if(S.susp>=100){S.susp=40;S.rep-=25;S.pen=1;L('🕵️ Alguien sospecha de tu suerte: te investigan. Perdés tiempo y reputación.')}
+if(S.t>=END&&!S.end)S.end=1;cl();save()}
+function after(){ren();if(S.end)fin()}
+function openSkip(){modal(b=>{b.innerHTML='<h3>⏩ Saltar el tiempo</h3><p class=s>Podés dejar pasar meses o años sin actuar. Tu trabajo y tus inversiones siguen y el efectivo en pesos se pasa solo a dólares, pero <b>perdés esos años</b> de decisiones: la familia se enfría y la vida sigue sin vos. Los eventos del mundo ocurren igual. Decidís vos.</p>';
+[['6 meses',6],['1 año',12],['3 años',36],['5 años',60],['10 años',120],['Hasta 2026',999]].forEach(([t,n])=>bt(b,t,()=>{$('#md').hidden=true;for(let i=0;i<n&&!S.end;i++){mes(1);const x=S.pe-3000;if(x>0){S.us+=x/fx();S.pe-=x}}S.bf+=F(Math.min(n,200)/12);L('⏩ Dejaste pasar el tiempo.');after()}))})}
+function openDiary(){modal(b=>{b.innerHTML='<h3>📓 Diario</h3>'+(S.log.slice().reverse().map(x=>'<div class=row>'+x+'</div>').join('')||'<p class=s>Todavía no pasó nada.</p>')})}
+function openLib(){modal(b=>{b.innerHTML='<h3>🎟 Libreta de números</h3><p class=s>Los sorteos de fábrica son <b>ficticios</b>. Reemplazalos o agregá los resultados reales de la Quiniela y el 5 de Oro de Uruguay que recuerdes o tengas anotados.</p>';
+S.lib.map((d,i)=>[d,i]).sort((a,c)=>a[0].y*12+a[0].m-c[0].y*12-c[0].m).forEach(([d,i])=>{const r=document.createElement('div');r.className='row';r.append(`${d.k=='5'?'🍀 5 de Oro':'🎲 Quiniela'} ${ds(d.y,d.m)} · ${d.n} · $${fm(d.p)}${d.f?' (ficticio)':''}${d.b?' ✅':''} `);bt(r,'🗑',()=>{S.lib.splice(i,1);save();openLib()});b.appendChild(r)});
+const f=document.createElement('div');f.innerHTML='<h3 style="margin-top:12px">Agregar sorteo</h3><label>Juego<select id=lk><option value=5>5 de Oro</option><option value=Q>Quiniela</option></select></label><label>Mes<select id=lm>'+MN.map((x,i)=>`<option value=${i}>${x}</option>`).join('')+'</select></label><label>Año<input id=ly type=number value=1999></label><label>Números<input id=ln></label><label>Premio ($)<input id=lp type=number></label><label>Costo del boleto ($)<input id=lc type=number value=30></label>';
+b.appendChild(f);bt(b,'Agregar',()=>{const d={k:$('#lk').value,m:+$('#lm').value,y:+$('#ly').value,n:$('#ln').value||'—',p:+$('#lp').value||0,c:+$('#lc').value||30};if(d.y<1998||d.y>2026)return toast('Año entre 1998 y 2026');S.lib.push(d);save();openLib()})})}
+function openNames(){modal(b=>{b.innerHTML='<h3>Nombres</h3>';const lab={pa:'Papá',ma:'Mamá',h1:'Hermana mayor',h2:'Otra hermana',am:'Mejor amigo',es:'Tu futura esposa',hj:'Tu hijo'};for(const k in lab){const l=document.createElement('label'),i=document.createElement('input');i.value=S.names[k];i.oninput=()=>{S.names[k]=i.value||lab[k];save()};l.append(lab[k],i);b.appendChild(l)}})}
+function openMenu(){modal(b=>{b.innerHTML='<h3>⚙ Menú</h3>';bt(b,'✏️ Cambiar nombres',openNames);bt(b,'❓ Cómo se juega',intro);bt(b,'🔄 Nueva partida',()=>{if(confirm('¿Empezar de cero? Se pierde esta partida.')){nuevo();$('#md').hidden=true;ren();intro()}})})}
+function intro(){modal(b=>{b.innerHTML=`<h3>🕰️ Volver a 1998</h3><p>Es noviembre de 2026. Cerrás los ojos y abrís: marzo de 1998, Montevideo, tenés 17 años y toda tu memoria del futuro.</p><p class=s>• Tocá un lugar del mapa para caminar hasta ahí y actuar. Cada acción gasta ⏳ (3 por mes; un trabajo te saca 1).<br>• <b>Pasar mes</b> avanza el tiempo: cobrás, pagan los sorteos, ocurren hechos reales y tus cambios se propagan (🦋).<br>• Siendo menor ahorrás con changas y con papá/mamá en el banco; a los 18 podés trabajar, jugar y invertir.<br>• Podés <b>contar tu secreto</b> o callarlo, y <b>saltar años</b> si querés (perdés esos años de acción).<br>• Llegás hasta noviembre de 2026 y se compara con tu 2026 original: casado, un hijo de 7, director en un canal de TV, papás vivos y 3 sobrinos.<br>• Precios y sorteos son estilizados/ficticios; cargá los reales en 🎟.</p>`;bt(b,'✏️ Personalizar nombres',openNames)})}
+function fin(){const a=age(S.t),j=S.job>=0?J[S.job]:null,w=wealth(),kid=S.kb>=0&&S.t>=S.kb?`${N('hj')}, ${F((S.t-S.kb)/12)} años`:'Sin hijos',pad=['pa','ma'].map(k=>`${N(k)}: ${S.dead[k]?'ya no está':'vivo/a'}`).join(' · ');
+const bel=Object.keys(S.bel).map(N).join(', ')||'nadie';
+const sc=Math.round((S.sp==2?10:0)+(S.kb>=0&&S.t>=S.kb?10:0)+(!S.dead.pa?5:0)+(!S.dead.ma?5:0)+S.hp/5+C(Math.log10(w+1)/6*25,0,25)+(j?(S.lvl+1)*6:0)+S.nie*3);
+modal(b=>{b.innerHTML=`<h3>${S.end==2?'💔 Tu salud no aguantó':'🌆 Noviembre de 2026'}</h3><p class=s>Tu vida nueva comparada con la original (🦋 ${S.bf} cambios grandes).</p><table><tr><th></th><th>Antes</th><th>Ahora</th></tr>
+<tr><td>Trabajo</td><td>Director en un canal de TV</td><td>${j?j.l[S.lvl]+' ('+j.n+')':'Sin trabajo fijo'}</td></tr>
+<tr><td>Pareja</td><td>Casado</td><td>${S.sp==2?'Casado con '+N('es'):S.sp==3?'Separado':S.sp==1?'En pareja con '+N('es'):'Soltero'}</td></tr>
+<tr><td>Hijos</td><td>Un hijo de 7</td><td>${kid}</td></tr><tr><td>Padres</td><td>Ambos vivos</td><td>${pad}</td></tr>
+<tr><td>Sobrinos</td><td>3</td><td>${S.nie}</td></tr><tr><td>Patrimonio</td><td>Normal</td><td>US$${fm(w)}</td></tr>
+<tr><td>Salud / ánimo</td><td>—</td><td>${F(S.hp)} / ${F(S.mood)}</td></tr><tr><td>Te creyeron</td><td>—</td><td>${bel}</td></tr></table><h3 style="margin-top:10px">Puntaje: ${sc}/100</h3><p>${sc>=75?'Aprovechaste la segunda oportunidad sin perder lo que importa.':sc>=50?'Una vida distinta, con luces y sombras.':'Cambiaste el futuro, pero no necesariamente para mejor.'}</p>`;bt(b,'🔄 Jugar de nuevo',()=>{nuevo();$('#md').hidden=true;ren();intro()})})}
+$('#bm').onclick=()=>{if(S.end)return fin();mes(0);after()};$('#bs').onclick=openSkip;$('#bd').onclick=openDiary;$('#bl').onclick=openLib;$('#bn').onclick=openMenu;
+const cv=$('#cv'),cx=cv.getContext('2d');
+cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*360/r.width,y=(e.clientY-r.top)*210/r.height;let b=null,bd=1e9;for(const k in PL){const d=Math.hypot(PL[k][0]-x,PL[k][1]-y);if(d<bd){bd=d;b=k}}if(bd<50&&b!=S.pos){S.pos=b;tgt=b;panel()}};
+function loop(){cx.fillStyle='#2f6b4f';cx.fillRect(0,0,360,210);cx.fillStyle='#3a7a5b';for(let i=0;i<360;i+=20)for(let j=0;j<210;j+=20)if((i+j)%40==0)cx.fillRect(i,j,20,20);
+cx.fillStyle='#8a8f98';cx.fillRect(0,100,360,14);cx.fillRect(100,0,12,210);cx.fillRect(205,0,12,210);
+for(const k in PL){const[x,y,e,n,c]=PL[k];cx.fillStyle=c;cx.fillRect(x-26,y-18,52,36);cx.fillStyle='rgba(0,0,0,.28)';cx.fillRect(x-26,y-18,52,8);cx.font='20px serif';cx.textAlign='center';cx.fillText(e,x,y+10);cx.font='bold 10px Verdana';cx.fillStyle='#fff';cx.fillText(n,x,y+30)}
+if(tgt){const T=PL[tgt],dx=T[0]-ply[0],dy=T[1]+30-ply[1],d=Math.hypot(dx,dy);if(d<3){tgt=null;panel()}else{ply[0]+=dx/d*2.6;ply[1]+=dy/d*2.6;wk+=.4}}
+const x=ply[0],y=ply[1],bb=tgt?Math.sin(wk*3)*2:0;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(x,y,7,3,0,0,7);cx.fill();cx.fillStyle='#2d3a8c';cx.fillRect(x-4,y-8,3,8-Math.max(0,bb));cx.fillRect(x+1,y-8,3,8+Math.min(0,bb));cx.fillStyle='#f2a93b';cx.fillRect(x-5,y-18,10,11);cx.fillStyle='#f2c9a0';cx.beginPath();cx.arc(x,y-23,5,0,7);cx.fill();cx.fillStyle='#3b2a1a';cx.fillRect(x-5,y-29,10,4);
+requestAnimationFrame(loop)}
+(function(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(s&&s.t!=null&&!s.end){S=s;ply=[PL[S.pos][0],PL[S.pos][1]+30];ren();toast('Partida cargada')}else{nuevo();ren();intro()}
+loop();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})})();
+</script></body></html>
