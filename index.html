@@ -23,7 +23,7 @@ label{display:block;margin:6px 0;font-size:13px}input,select{font:inherit;backgr
 table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:4px;border-bottom:1px solid #24505c;text-align:left;vertical-align:top}
 </style></head><body><div id="app">
 <header><span id="dt"></span><span id="ed"></span></header><div id="hud"></div>
-<canvas id="cv" width="360" height="210"></canvas><div id="tick"></div><div id="pn"></div>
+<canvas id="cv" width="360" height="330"></canvas><div id="tick"></div><div id="pn"></div>
 <nav><button id="bm">⏭ Pasar mes</button><button id="bs">⏩ Saltar</button><button id="bd">📓</button><button id="bl">🎟</button><button id="bn">⚙</button></nav></div>
 <div id="md" hidden><div id="mb"></div></div><div id="ts"></div>
 <script>
@@ -58,7 +58,7 @@ const NB=[[2004,5,'h1','una sobrina'],[2008,8,'h1','un sobrino'],[2012,2,'h2','u
 const defLib=()=>[{k:'Q',y:1998,m:3,n:'472',p:7000,c:100,f:1},{k:'5',y:1998,m:7,n:'03 11 19 27 36',p:4500000,c:30,f:1},{k:'Q',y:1998,m:9,n:'815',p:7000,c:100,f:1},
 {k:'5',y:1999,m:1,n:'05 09 21 30 38',p:9000000,c:30,f:1},{k:'5',y:1999,m:8,n:'02 14 22 31 40',p:14000000,c:30,f:1},{k:'5',y:2000,m:4,n:'07 13 18 29 35',p:7000000,c:30,f:1},{k:'5',y:2001,m:2,n:'01 12 25 33 39',p:20000000,c:30,f:1}];
 let S,tgt=null,ply=[50,83],wk=0;
-const N=k=>S.names[k],yr=t=>1998+F((t+2)/12),mo=t=>(t+2)%12,age=t=>17+F(t/12),ds=(y,m)=>MN[m]+' '+y;
+const N=k=>k=='es'&&S.alt?S.alt:k=='gf'?(S.gf&&S.gf.n):FR(k)?FR(k).n:S.names[k],yr=t=>1998+F((t+2)/12),mo=t=>(t+2)%12,age=t=>17+F(t/12),ds=(y,m)=>MN[m]+' '+y;
 const fx=()=>ip(FX,1998);function ip(a,y0){const y=yr(S.t);if(y<y0)return null;const i=Math.min(y-y0,a.length-1),j=Math.min(i+1,a.length-1);return a[i]*Math.pow(a[j]/a[i],mo(S.t)/12)}
 const px=a=>ip(AS[a][2],AS[a][1]);
 function nuevo(){S={t:0,pe:6000,us:0,bk:0,inv:{aapl:0,msft:0,amzn:0,goog:0,btc:0},job:-1,lvl:0,exp:0,sk:0,hp:85,mood:70,st:20,rep:50,rel:{pa:55,ma:60,h1:50,h2:50,am:60,es:0},told:{},bel:{},par:{pa:80,ma:80},dead:{},sp:0,kb:-1,nie:0,bf:0,susp:0,proof:0,pred:-1,ap:3,pos:'casa',fz:0,log:[],lib:defLib(),pen:0,end:0,amt:500,names:{...NM}};ply=[50,83];tgt=null}
@@ -89,7 +89,7 @@ r.push(['🗣️ Contarle tu secreto a alguien de la familia',()=>openTell(['pa'
 estudio:()=>[`Habilidad acumulada: ${S.sk}. Estudiar acelera tus ascensos.`,['📚 Estudiar un mes (+3)',()=>go(()=>{S.sk+=3;S.st+=3;L('Estudiás a fondo.')})]],
 plaza:()=>{const r=[['⚽ Salir con '+N('am')+' ('+F(S.rel.am)+')',()=>go(()=>{S.rel.am+=9;S.mood+=8;S.st-=4;L('Salís con '+N('am')+'.')})]];
 if(!S.told.am)r.push(['🗣️ Contarle tu secreto a '+N('am'),()=>tell('am')]);
-if(S.sp==0&&yr(S.t)>=2003)r.push(['💘 Buscar a '+N('es'),()=>go(()=>{if(R()*100<40+S.mood*.3+(S.job>=0?10:0)){S.sp=1;S.rel.es=25;S.bf+=2;L('Conocés a '+N('es')+'. Algo hay ahí.')}else L('No encontrás a '+N('es')+' esta vez...')})]);
+if(S.sp==0&&yr(S.t)>=2003&&!S.gf)r.push(['💘 Buscar a '+N('es'),()=>go(()=>{if(R()*100<40+S.mood*.3+(S.job>=0?10:0)){S.sp=1;S.rel.es=25;S.bf+=2;L('Conocés a '+N('es')+'. Algo hay ahí.')}else L('No encontrás a '+N('es')+' esta vez...')})]);
 if(S.sp==0&&yr(S.t)<2003)r.push('Todavía no es momento de buscar a '+N('es')+'.');
 if(S.sp==1||S.sp==2){r.push(['❤️ Pasar tiempo con '+N('es')+' ('+F(S.rel.es)+')',()=>go(()=>{S.rel.es+=10;S.mood+=8;S.st-=4;L('Tiempo con '+N('es')+'.')})]);
 if(!S.told.es)r.push(['🗣️ Contarle tu secreto a '+N('es'),()=>tell('es')])}
@@ -114,12 +114,12 @@ function buy(a){const p=px(a);if(!pay(S.amt))return toast('No te alcanza el efec
 function sell(a){const p=px(a),x=Math.min(S.inv[a]*p,S.amt);if(x<=0)return toast('No tenés de eso');S.inv[a]-=x/p;S.us+=x;L(`Vendés US$${fm(x)} de ${AS[a][0].split(' (')[0]}.`);ren()}
 function openTell(ks){modal(b=>{b.innerHTML=`<h3>🗣️ Contar el secreto</h3><p class=s>Cada persona reacciona distinto. ${S.proof?'Tus predicciones cumplidas ayudan.':'Si primero anotás predicciones y se cumplen, te creen más.'} Quien te cree puede ayudarte (por ejemplo, jugar tus números siendo vos menor) y te alivia el estrés; quien no, puede asustarse o contarlo.</p>`;
 ks.forEach(k=>{if(!S.dead[k]&&!S.told[k])bt(b,`${N(k)} · ${TR[k][1]} · relación ${F(S.rel[k])}`,()=>{$('#md').hidden=true;tell(k)})})})}
-function tell(k){if(S.told[k]||!use())return;const t=TR[k];S.told[k]=1;S.bf++;const p=t[0]+S.rel[k]*.35+(S.proof?25:0)-10,r=R()*100;let m;
+function tell(k){if(S.told[k]||!use())return;const t=TR[k]||[FR(k)&&FR(k).ch?35:55,'amigo nuevo'];S.told[k]=1;S.bf++;const p=t[0]+S.rel[k]*.35+(S.proof?25:0)-10,r=R()*100;let m;
 if(r<p){S.bel[k]=1;S.rel[k]+=12;S.mood+=8;m=`${N(k)} te cree (${t[1]}). Ya no cargás solo con el secreto.`}
 else if(r<p+25){S.rel[k]-=5;S.mood-=6;m=`${N(k)} duda: piensa que es estrés o una broma.`}
-else if(k=='am'||k=='es'){S.rel[k]-=15;S.mood-=8;m=`${N(k)} se enoja: cree que le tomás el pelo.`}
+else if(k=='am'||k=='es'||k=='gf'||FR(k)){S.rel[k]-=15;S.mood-=8;m=`${N(k)} se enoja: cree que le tomás el pelo.`}
 else{S.pen=1;S.rep-=10;S.mood-=8;m=`${N(k)} se asusta y te lleva a un psicólogo. Perdés tiempo y credibilidad.`}
-if((k=='h2'||k=='am')&&R()<.35){S.rep-=15;S.susp+=25;m+=' Y lo cuenta por ahí: el rumor se esparce.'}
+if((k=='h2'||k=='am'||(FR(k)&&FR(k).ch))&&R()<.35){S.rep-=15;S.susp+=25;m+=' Y lo cuenta por ahí: el rumor se esparce.'}
 L(m);toast(m);cl();ren()}
 function mes(sk){S.t++;const y=yr(S.t),m=mo(S.t),a=age(S.t),f=fx();S.ap=Math.max(1,3-(S.job>=0&&a>=18?1:0)-S.pen);S.pen=0;
 if(S.job>=0&&a>=18){const j=J[S.job];S.exp++;S.pe+=j.s[S.lvl]*f;S.st+=2;const e=S.exp+S.sk*.8;let n=0;[0,10,30,60].forEach((t,i)=>{if(e>=t*j.h)n=i});if(n>S.lvl){S.lvl=n;L(`🎉 Ascenso: ${j.l[n]} (US$${j.s[n]}/mes)`);S.mood+=10}}
@@ -165,7 +165,132 @@ for(const k in PL){const[x,y,e,n,c]=PL[k];cx.fillStyle=c;cx.fillRect(x-26,y-18,5
 if(tgt){const T=PL[tgt],dx=T[0]-ply[0],dy=T[1]+30-ply[1],d=Math.hypot(dx,dy);if(d<3){tgt=null;panel()}else{ply[0]+=dx/d*2.6;ply[1]+=dy/d*2.6;wk+=.4}}
 const x=ply[0],y=ply[1],bb=tgt?Math.sin(wk*3)*2:0;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(x,y,7,3,0,0,7);cx.fill();cx.fillStyle='#2d3a8c';cx.fillRect(x-4,y-8,3,8-Math.max(0,bb));cx.fillRect(x+1,y-8,3,8+Math.min(0,bb));cx.fillStyle='#f2a93b';cx.fillRect(x-5,y-18,10,11);cx.fillStyle='#f2c9a0';cx.beginPath();cx.arc(x,y-23,5,0,7);cx.fill();cx.fillStyle='#3b2a1a';cx.fillRect(x-5,y-29,10,4);
 requestAnimationFrame(loop)}
-(function(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(s&&s.t!=null&&!s.end){S=s;ply=[PL[S.pos][0],PL[S.pos][1]+30];ren();toast('Partida cargada')}else{nuevo();ren();intro()}
+</script><script>
+/* ===== V2 ===== */
+document.head.insertAdjacentHTML('beforeend','<style>.on{background:#f2a93b!important;color:#10242b!important}nav button{font-size:13px;padding:10px 2px}</style>');
+const FR=k=>/^f\d+$/.test(k)?S.fr[+k.slice(1)]:null;TR.gf=[45,'tu novia'];
+const FN=['Gonzalo','Martín','Federico','Rodrigo','Sebastián','Diego','Matías','Andrés','Camila','Florencia','Joaquín','Bruno'],GN=['Valentina','Sofía','Agustina','Natalia','Romina','Florencia','Micaela'];
+Object.assign(PL,{casa:[55,40,'🏠','Casa','#c9704f'],estudio:[180,40,'🎓','Estudio','#4f7cc9'],plaza:[305,40,'🌳','Plaza','#59a35b'],banco:[55,115,'🏦','Banco','#b59a3a'],agencia:[180,115,'🎟️','Agencia','#c94f8a'],trabajo:[305,115,'💼','Trabajo','#7a5fc9'],
+inmob:[55,190,'🏘️','Inmob.','#3f8f8f'],tienda:[180,190,'🛍️','Tienda','#d1823b'],viajes:[305,190,'✈️','Viajes','#4a90c9'],apuestas:[180,265,'🎰','Apuestas','#a33b3b']});
+Object.assign(AS,{nvda:['Nvidia (sale a bolsa en 1999)',1999,[1,1.6,3,2,1,3,3,3,4,3,2,4,5,4,5,5,8,10,12,20,30,60,120,100,40,100,300,600]],
+nflx:['Netflix (sale a bolsa en 2002)',2002,[1,2.5,3.2,4,4.5,5,4,7,15,12,6,25,30,60,80,140,200,210,340,400,170,300,480,700,650]],
+tsla:['Tesla (sale a bolsa en 2010)',2010,[1,1.2,1.1,3.5,4.6,3.7,3.3,4.7,4.3,7.4,25,31,14,26,30,35,36]],
+meta:['Facebook (sale a bolsa en 2012)',2012,[1,1.5,2,2.4,3,4.2,3.8,5,6.5,7.5,3.5,9,14,17,18]],uber:['Uber (sale a bolsa en 2019)',2019,[1,1,1,.8,1.5,2,2.2,2.3]]});
+const RE=[1,1,1.05,.95,.7,.65,.7,.85,1,1.2,1.4,1.5,1.8,2.2,2.5,2.7,2.8,2.8,2.8,2.9,2.9,3,3,3,3.1,3.1,3.1,3.1,3.1];
+const PR=[['Monoambiente en el Cordón',16000],['Apartamento de 2 dormitorios en Pocitos',40000],['Casa en Carrasco',130000],['Penthouse en Punta Carretas',320000],['Terreno en Punta del Este',60000]];
+const BZ=[['Almacén de barrio',6000,200,'Comercio'],['Bar-restaurante',40000,1200,'Gastronomía'],['Productora audiovisual',25000,700,'Audiovisual'],['Local de informática',15000,450,'Informática'],['Gimnasio',30000,800,'']];
+const VH=[['auto','Fiat Uno usado',2500],['auto','Chevrolet Corsa',8000],['auto','Audi A4',35000],['auto','Mercedes-Benz Clase E',70000],['moto','Yumbo 50cc',600],['moto','Honda CG 125',1500],['moto','Harley-Davidson',18000]];
+const GD=[['pc','PC usada',500,1998],['pc','PC gamer',1800,1998],['cel','Celular básico',250,1998],['cel','Celular con cámara',350,2004],['cel','Smartphone (iPhone)',700,2008],['cel','Smartphone tope de gama',1200,2012]];
+const DEST=[['Punta del Este (fin de semana)',150,1],['Buenos Aires',400,1],['Río de Janeiro',900,1],['Miami y Disney',2500,2],['Europa',4500,2],['Japón',6000,2]];
+const TIPS=[[1999,0,'🎮 Nvidia sale a bolsa.'],[2001,11,'🇦🇷 Crisis en Argentina: se viene la crisis bancaria en Uruguay.'],[2002,4,'🎬 Netflix sale a bolsa.'],[2002,6,'🏦 Corrida bancaria: sacá tus US$ del banco y no te quedes con pesos.'],[2002,7,'💸 Devaluación: los pesos pierden valor frente al dólar.'],[2004,7,'🔎 Google sale a bolsa: ventana para comprar.'],[2007,0,'📱 Sale el iPhone: Apple despega.'],[2008,8,'📉 Crisis global: ojo con tus acciones.'],[2010,0,'₿ Bitcoin empieza a cotizar: ventana para comprar.'],[2010,5,'🚗 Tesla sale a bolsa.'],[2012,4,'📘 Facebook sale a bolsa.'],[2019,4,'🚕 Uber sale a bolsa.'],[2020,2,'😷 Pandemia: caída fuerte y rebote de las bolsas.']];
+const SP=[];(function(){const f=(y,m,l,w,o)=>{const p=(y+m)%2;SP.push({y,m,l,a:p?o:w,b:p?w:o,w:p?'b':'a'})};
+[[1998,6,'Mundial','Francia','Brasil'],[2002,5,'Mundial','Brasil','Alemania'],[2006,6,'Mundial','Italia','Francia'],[2010,6,'Mundial','España','Países Bajos'],[2014,6,'Mundial','Alemania','Argentina'],[2018,6,'Mundial','Francia','Croacia'],[2022,11,'Mundial','Argentina','Francia'],
+[1999,6,'Copa América','Brasil','Uruguay'],[2001,6,'Copa América','Colombia','México'],[2004,6,'Copa América','Brasil','Argentina'],[2007,6,'Copa América','Brasil','Argentina'],[2011,6,'Copa América','Uruguay','Paraguay'],[2015,6,'Copa América','Chile','Argentina'],[2016,5,'Copa América Centenario','Chile','Argentina'],[2019,6,'Copa América','Brasil','Perú'],[2021,6,'Copa América','Argentina','Brasil'],[2024,6,'Copa América','Argentina','Colombia'],
+[2000,6,'Eurocopa','Francia','Italia'],[2004,6,'Eurocopa','Grecia','Portugal'],[2008,5,'Eurocopa','España','Alemania'],[2012,6,'Eurocopa','España','Italia'],[2016,6,'Eurocopa','Portugal','Francia'],[2021,6,'Eurocopa','Italia','Inglaterra'],[2024,6,'Eurocopa','España','Inglaterra']].forEach(x=>f(...x));
+const nw='Bulls,Spurs,Lakers,Lakers,Lakers,Spurs,Pistons,Spurs,Heat,Spurs,Celtics,Lakers,Lakers,Mavs,Heat,Heat,Spurs,Warriors,Cavs,Warriors,Warriors,Raptors,Lakers,Bucks,Warriors,Nuggets,Celtics,Thunder'.split(','),nl='Jazz,Knicks,Pacers,76ers,Nets,Nets,Lakers,Pistons,Mavs,Cavs,Lakers,Magic,Celtics,Heat,Thunder,Spurs,Heat,Cavs,Warriors,Cavs,Cavs,Warriors,Heat,Suns,Celtics,Heat,Mavs,Pacers'.split(',');
+nw.forEach((w,i)=>f(1998+i,i==22?9:i==23?6:5,'NBA Finals',w,nl[i]));
+const cw='Real Madrid,Man. United,Real Madrid,Bayern,Real Madrid,Milan,Porto,Liverpool,Barcelona,Milan,Man. United,Barcelona,Inter,Barcelona,Chelsea,Bayern,Real Madrid,Barcelona,Real Madrid,Real Madrid,Real Madrid,Liverpool,Bayern,Chelsea,Real Madrid,Man. City,Real Madrid,PSG'.split(','),cl='Juventus,Bayern,Valencia,Valencia,Leverkusen,Juventus,Mónaco,Milan,Arsenal,Liverpool,Chelsea,Man. United,Bayern,Man. United,Bayern,Dortmund,Atlético,Juventus,Atlético,Juventus,Liverpool,Tottenham,PSG,Man. City,Liverpool,Inter,Dortmund,Inter'.split(',');
+cw.forEach((w,i)=>{const y=1998+i;f(y,y==2020?7:[2019,2023,2024].includes(y)?5:4,'Champions League',w,cl[i])});
+SP.sort((a,b)=>a.y*12+a.m-b.y*12-b.m)})();
+const ACH=[['mill','💰 Primer millón de dólares',()=>wealth()>=1e6],['oro','🍀 Ganaste el 5 de Oro',()=>S.lib.some(d=>d.k=='5'&&d.b&&d.res)],['p3','🏠 Tres propiedades',()=>S.props.length>=3],['alq','🔑 Rentista: 3 inmuebles alquilados',()=>S.props.filter(x=>x.s=='a').length>=3],['neg','💼 Dueño de 2 negocios',()=>S.biz.length>=2],['via','✈️ Cinco viajes',()=>S.trips>=5],['inf','📱 100.000 seguidores',()=>S.soc.fol>=1e5],['s02','🛡️ Salvaste tu plata en 2002',()=>yr(S.t)==2003&&mo(S.t)==6&&S.bk<100&&S.us>=1000],['pad','👶 Papá',()=>S.kb>=0&&S.t>=S.kb],['cas','💍 Casado',()=>S.sp==2],['apu','🎰 Ganaste US$50.000 apostando',()=>S.win>=5e4],['ami','🤝 Cinco amigos nuevos',()=>S.fr.length>=5],['pa','🕊️ Ambos padres vivos en 2026',()=>S.end==1&&!S.dead.pa&&!S.dead.ma]];
+function ach(){let g={};try{g=JSON.parse(localStorage.getItem('volver98_ach')||'{}')}catch(e){}ACH.forEach(a=>{if(!g[a[0]]&&a[2]()){g[a[0]]=1;L('🏅 Logro: '+a[1])}});try{localStorage.setItem('volver98_ach',JSON.stringify(g))}catch(e){}}
+function ensure(){const d={props:[],veh:[],gad:[],biz:[],bets:[],fr:[],soc:{fol:0},prof:1,trips:0,rec:0,dif:1,win:0,slot:1,gf:null,alt:null,ludo:0};for(const k in d)if(S[k]==null)S[k]=d[k];for(const a in AS)S.inv[a]=S.inv[a]||0}
+const era=()=>yr(S.t)<2005?.8:1,PRM=()=>[.5,1,1.8][S.prof],reNow=()=>ip(RE,1998),oN=k=>k=='yo'?'vos':N(k);
+const bump=(p,o)=>{S.susp+=C(p/3000,1,35)*PRM()*(o=='yo'?1:.4)*era();if(S.prof==2)S.mood+=4};
+const yrs=x=>(S.t-x.t)/12;
+const val=(l,x)=>l=='props'?x.k*reNow():l=='veh'?x.pr*Math.max(.15,Math.pow(.88,yrs(x))):l=='gad'?x.pr*Math.max(.05,Math.pow(.6,yrs(x))):x.pr*(1+.04*yrs(x));
+const assets=()=>['props','veh','gad','biz'].reduce((s,l)=>s+S[l].reduce((a,x)=>a+val(l,x),0),0);
+const _w=wealth;wealth=function(){return _w()+assets()};
+function pickOwner(cb){modal(b=>{b.innerHTML='<h3>¿A nombre de quién?</h3><p class=s>A nombre de otro llamás menos la atención, pero dependés de su confianza: si la relación se enfría, puede quedarse con todo.</p>';
+const ks=['yo','pa','ma','h1','h2','am'];if(S.sp>=1)ks.push('es');if(S.gf)ks.push('gf');S.fr.forEach((f,i)=>ks.push('f'+i));
+ks.forEach(k=>{if(S.dead[k]||(k=='yo'&&age(S.t)<18))return;bt(b,k=='yo'?'Yo':N(k)+' (relación '+F(S.rel[k])+')',()=>{if(k!='yo'&&S.rel[k]<30)return toast(N(k)+' no se anima: te conoce poco');$('#md').hidden=true;cb(k)})})})}
+function comprar(l,x,price){const mk=l!='gad';const doit=o=>{if(mk&&!use())return;if(!pay(price)){if(mk)S.ap++;return toast('No te alcanza la plata')}
+x.t=S.t;x.o=o;x.pr=price;x.s='v';if(l=='props')x.k=price/reNow();S[l].push(x);bump(price,o);S.bf++;cl();L(`🛒 Comprás ${x.n} por US$${fm(price)}${o!='yo'?' (a nombre de '+N(o)+')':''}.`);if(S.prof==2&&price>2000)L('📣 Todo el mundo se entera de tu compra.');ren()};mk?pickOwner(doit):doit('yo')}
+function vender(l,i,f){const x=S[l][i];if(!x)return;const v=val(l,x)*f;S.us+=v;S[l].splice(i,1);S.bf++;L(`💵 Vendés ${x.n} por US$${fm(v)}.`);ren()}
+ACTS.inmob=()=>{const r=['Inmuebles y negocios a precio de mercado de hoy (cambia con los años).','<b>Comprar inmuebles</b>'],m=reNow();
+PR.forEach(p=>{const c=Math.round(p[1]*m);r.push([`${p[0]} · US$${fm(c)}`,()=>comprar('props',{n:p[0]},c)])});
+S.props.forEach((x,i)=>{r.push(`🏠 <b>${x.n}</b> · US$${fm(val('props',x))} · titular ${oN(x.o)} · ${x.s=='h'?'vivís acá':x.s=='a'?'alquilado':'vacío'}`);
+r.push([x.s=='h'?'Vivís acá':'Vivir acá',()=>{S.props.forEach(y=>{if(y.s=='h')y.s='v'});x.s='h';S.mood+=5;L('Te mudás a '+x.n+'.');ren()},x.s=='h'||age(S.t)<18],[x.s=='a'?'Dejar vacío':'Alquilar',()=>{x.s=x.s=='a'?'v':'a';ren()},x.s=='h'],['Vender',()=>vender('props',i,.95)])});
+r.push('<b>Comprar negocios</b>');BZ.forEach(b=>r.push([`${b[0]} · US$${fm(b[1])} · ganancia aprox. US$${b[2]}/mes`,()=>comprar('biz',{n:b[0],g:b[2],r:b[3]},b[1]),age(S.t)<18]));
+S.biz.forEach((x,i)=>{r.push(`💼 <b>${x.n}</b> · vale US$${fm(val('biz',x))} · titular ${oN(x.o)}`);r.push(['⭐ Atender este mes (+20%)',()=>go(()=>{x.b=1;S.st+=6;L('Atendés '+x.n+' personalmente.')})],['Vender',()=>vender('biz',i,.7)])});return r};
+ACTS.tienda=()=>{const r=['Autos, motos, compus y celulares. Lo caro se nota: sube tu atención.'],ic=c=>c=='auto'?'🚗':c=='moto'?'🏍️':c=='pc'?'💻':'📱';
+VH.forEach(v=>r.push([`${ic(v[0])} ${v[1]} · US$${fm(v[2])}`,()=>comprar('veh',{n:v[1],c:v[0]},v[2]),v[0]=='auto'&&age(S.t)<18]));
+GD.forEach(g=>{if(yr(S.t)>=g[3])r.push([`${ic(g[0])} ${g[1]} · US$${fm(g[2])}`,()=>comprar('gad',{n:g[1],c:g[0]},g[2])])});
+['veh','gad'].forEach(l=>S[l].forEach((x,i)=>{r.push(`${ic(x.c)} ${x.n} · vale US$${fm(val(l,x))}${l=='veh'?' · titular '+oN(x.o):''}`);r.push(['Vender',()=>vender(l,i,l=='veh'?.85:.5)])}));return r};
+ACTS.viajes=()=>{const r=['Viajar con alguien sube el ánimo y la relación, y deja recuerdos. Viajes hechos: '+S.trips+'.'];DEST.forEach(d=>r.push([`${d[0]} · US$${fm(d[1])} por persona`,()=>pickGroup(d),age(S.t)<18&&d[1]>500]));return r};
+function pickGroup(d){modal(b=>{b.innerHTML='<h3>✈️ '+d[0]+'</h3><p class=s>Pagás vos por todos.</p>';const al=k=>!S.dead[k];
+const G=[['Solo',[]],['Con amigos',['am'].concat(S.fr.slice(0,2).map((f,i)=>'f'+i))],['Con la familia',['pa','ma','h1','h2'].filter(al)],['En pareja',S.sp>=1?['es']:S.gf?['gf']:null]];
+G.forEach(([t,p])=>{if(p)bt(b,`${t} (US$${fm(d[1]*(1+p.length))})`,()=>{$('#md').hidden=true;viajar(d,p)})})})}
+function viajar(d,p){const c=d[1]*(1+p.length);if(S.ap<d[2])return toast('Este viaje necesita '+d[2]+' de tiempo');if(!pay(c))return toast('No te alcanza la plata');S.ap-=d[2];
+S.mood+=C(12+d[1]/300,12,25);S.st-=15;S.trips++;S.rec++;p.forEach(k=>S.rel[k]+=12);if(d[1]>=2500&&S.prof==2)S.susp+=8;if(S.soc.fol>0&&S.prof>0)S.soc.fol+=F(d[1]/20);cl();L(`✈️ Viajás a ${d[0]}${p.length?' con '+p.map(N).join(', '):' solo'}. Queda un lindo recuerdo.`);ren()}
+const odds=(e,s)=>s==e.w?1.8+((e.y*7+e.m*3)%14)/10:1.4+((e.y+e.m)%9)/10;
+ACTS.apuestas=()=>{const r=['Casa de apuestas (18+). Apostás a quién gana la final. Las alarmas del 📱 te ayudan a recordar quién ganó.',chips()];if(age(S.t)<18)return r.concat('Solo mayores de 18.');
+const n=yr(S.t)*12+mo(S.t),lim=S.win>50000?500:1e9;if(lim<1e9)r.push('⚠️ La casa te limitó a US$500 por apuesta por ganar demasiado.');
+const ev=SP.map((e,i)=>[e,i]).filter(([e])=>{const d=e.y*12+e.m-n;return d>=1&&d<=3});if(!ev.length)r.push('No hay finales importantes en los próximos 3 meses.');
+ev.forEach(([e,i])=>{r.push(`<b>${e.l}</b> · ${ds(e.y,e.m)}: ${e.a} vs ${e.b}`);['a','b'].forEach(s=>{const o=odds(e,s);r.push(['Apostar US$'+fm(S.amt)+' a '+e[s]+' (x'+o.toFixed(2)+')',()=>{if(S.amt>lim)return toast('Límite de la casa: US$'+lim);if(!pay(S.amt))return toast('No te alcanza el efectivo');S.bets.push({i,s,a:S.amt,o});S.ludo++;L('🎰 Apostás US$'+fm(S.amt)+' a '+e[s]+' ('+e.l+').');ren()},S.bets.some(b=>b.i==i)])})});
+S.bets.forEach(b=>r.push(`🎫 US$${fm(b.a)} a ${SP[b.i][b.s]} · ${SP[b.i].l} ${ds(SP[b.i].y,SP[b.i].m)}`));return r};
+const _pl=ACTS.plaza;ACTS.plaza=()=>{const r=_pl();
+r.push(['🤝 Hacer amigos nuevos',()=>go(()=>{if(R()<.65){const nm=FN[F(R()*FN.length)];S.fr.push({n:nm,ch:R()<.3});S.rel['f'+(S.fr.length-1)]=30;S.bf++;L('🤝 Hacés un nuevo amigo: '+nm+'.')}else L('Hoy no conectás con nadie nuevo.')})]);
+S.fr.forEach((f,i)=>{const k='f'+i;r.push(`👥 ${f.n} (${F(S.rel[k]||0)})`);r.push(['Salir con '+f.n,()=>go(()=>{S.rel[k]+=9;S.mood+=6;L('Salís con '+f.n+'.')})]);if(!S.told[k])r.push(['🗣️ Contarle a '+f.n,()=>tell(k)])});
+if(!S.gf&&S.sp==0)r.push(['💕 Conocer a alguien (novia)',()=>go(()=>{if(R()*100<35+S.mood*.4){S.gf={n:GN[F(R()*GN.length)]};S.rel.gf=30;S.bf+=2;L('💕 Empezás a salir con '+S.gf.n+'.')}else L('No pasa nada con nadie hoy.')})]);
+if(S.gf){const g=S.gf.n;r.push(['💑 Salir con '+g+' ('+F(S.rel.gf)+')',()=>go(()=>{S.rel.gf+=10;S.mood+=8;L('Salís con '+g+'.')})]);if(!S.told.gf)r.push(['🗣️ Contarle a '+g,()=>tell('gf')]);
+r.push(['💔 Terminar con '+g,()=>{S.gf=null;delete S.rel.gf;S.bf++;L('Terminás con '+g+'.');ren()}]);
+r.push(['💍 Casarte con '+g+' (relación ≥70, 24+ años)',()=>go(()=>{S.sp=2;S.alt=g;S.rel.es=S.rel.gf;S.told.es=S.told.gf;S.bel.es=S.bel.gf;S.gf=null;delete S.rel.gf;S.bf+=3;L('💍 Te casás con '+g+': tu futuro ya no es el original.')}),!(S.rel.gf>=70&&age(S.t)>=24)])}
+return r};
+function alarms(){const n=yr(S.t)*12+mo(S.t),o=[],mem=[1,.9,.7][S.dif];
+TIPS.forEach(t=>{const d=t[0]*12+t[1]-n;if(d>=1&&d<=2)o.push([d,'💡 '+t[2]])});
+SP.forEach((e,i)=>{const d=e.y*12+e.m-n;if(d>=1&&d<=2){const h=((i*37)%100)/100<mem?e.w:(e.w=='a'?'b':'a');o.push([d,`⚽ ${e.l}: ${e.a} vs ${e.b}. Recordás que ganó ${e[h]}${mem<1?' (no estás 100% seguro)':''}.`])}});
+S.lib.forEach(l=>{const d=l.y*12+l.m-n;if(!l.res&&d>=1&&d<=2)o.push([d,`🎟️ ${l.k=='5'?'5 de Oro':'Quiniela'} ${ds(l.y,l.m)}: ${l.n}${l.b?' (ya jugaste)':' · todavía no jugaste'}`])});
+if(S.t>=10&&S.t<12)o.push([12-S.t,'🎂 Cumplís 18: se abre todo (banco, bolsa, apuestas, autos).']);return o.sort((a,b)=>a[0]-b[0])}
+function post(k){if(!use())return;const q=S.soc,w=wealth(),p=PRM();
+if(k==0){q.fol+=F(5+R()*20)*(1+q.fol/2000);S.mood+=3;S.susp+=p;L('📷 Publicás tu vida de siempre.')}
+else if(k==1){q.fol+=F(30+R()*80)*(S.prof==2?2:1)*(1+q.fol/1500);S.susp+=C(w/8000,2,25)*p;S.mood+=4;L('💎 Mostrás lo que tenés: te siguen más… y te miran más.')}
+else{if(R()<.15+Math.min(.3,q.fol/100000)){const g=F(2000+R()*40000);q.fol+=g;S.susp+=10*p;L('🚀 ¡Se hace viral! +'+fm(g)+' seguidores.')}else{q.fol+=F(20+R()*100);L('🎯 Tu contenido tiene un alcance normal.')}
+if(R()<.07*(S.prof+.5)*(1+q.fol/50000)){q.fol*=.6;S.rep-=15;S.mood-=10;L('🔥 Polémica: te cancelan un rato y perdés seguidores.')}}
+q.fol=F(q.fol);cl();ren()}
+function openCel(){modal(b=>{const al=alarms();b.innerHTML='<h3>📱 Celular</h3><b>⏰ Alarmas (próximos 2 meses)</b>'+(al.map(a=>`<div class=row>En ${a[0]} mes${a[0]>1?'es':''}: ${a[1]}</div>`).join('')||'<p class=s>Sin alarmas por ahora.</p>')+'<p><b>Perfil</b> <span class=s>(discreto: menos robos, pedidos y problemas, pero menos fama; ostentoso: más fama y ánimo, más atención)</span></p>';
+['Discreto','Normal','Ostentoso'].forEach((t,i)=>{const x=bt(b,t,()=>{S.prof=i;openCel()});if(S.prof==i)x.className='on'});
+const y=yr(S.t),nm=y<2005?null:y<2009?'Fotolog':y<2013?'Facebook':y<2018?'Instagram':'Instagram y TikTok',ok=nm&&S.gad.some(g=>g.c=='pc'||g.c=='cel');
+b.insertAdjacentHTML('beforeend','<p><b>Redes sociales</b></p>'+(!nm?'<p class=s>Todavía no existen (aparecen hacia 2005).</p>':!ok?'<p class=s>Necesitás una compu o un celular (🛍️ Tienda).</p>':`<p>${nm} · seguidores: ${fm(S.soc.fol)}${S.soc.fol>=10000?' · ya cobrás por publicidad':''}</p>`));
+if(ok)[['📷 Publicar tu vida normal',0],['💎 Mostrar lo que tenés',1],['🎯 Contenido con tu conocimiento del futuro',2]].forEach(([t,k])=>bt(b,t,()=>{post(k);openCel()}))})}
+function mes2(sk){const y=yr(S.t),m=mo(S.t),f=fx(),pm=PRM(),rk=[.7,1,1.4][S.dif],lose=(x,t)=>{if(x.o!='yo'&&S.rel[x.o]<20&&!S.dead[x.o]&&R()<.03*rk){L('😠 '+N(x.o)+' se queda con '+x.n+' (estaba a su nombre).');x.x=1;S.bf+=2}};
+S.props.forEach(x=>{if(x.s=='a'&&R()<.9)S.us+=val('props',x)*.005;lose(x)});S.props=S.props.filter(x=>!x.x);const home=S.props.some(x=>x.s=='h');if(home)S.pe+=70*f;
+S.veh.forEach(x=>{pay(x.pr*.004);lose(x)});S.veh=S.veh.filter(x=>!x.x);if(S.veh.length)S.mood+=Math.min(2,S.veh.length*.5);
+if(S.job==2&&S.gad.some(g=>g.c=='pc'))S.exp+=.2;
+const cr=(y==2002&&m>=5)||(y==2003&&m<6)||(y==2020&&m>=2&&m<=8)||(y==2008&&m>=8);
+S.biz.forEach(x=>{lose(x);if(x.x)return;const g=x.g*(S.job>=0&&J[S.job].n==x.r?1.25:1)*(x.b?1.2:1)*(cr?.4:1)*(.8+R()*.4)*(x.o=='yo'?1:.8);x.b=0;S.pe+=g*f});S.biz=S.biz.filter(x=>!x.x);
+if(S.soc.fol>=10000)S.pe+=S.soc.fol*.004*f;
+S.bets=S.bets.filter(b=>{const e=SP[b.i];if(e.y!=y||e.m!=m)return true;if(b.s==e.w){const g=b.a*b.o;S.us+=g;S.win+=g-b.a;S.susp+=C((g-b.a)/3000,0,20)*pm;S.mood+=8;L(`🎰 ¡Ganaste! ${e.l}: ${e[e.w]}. Cobrás US$${fm(g)}.`)}else{S.mood-=5;L(`😞 Perdiste US$${fm(b.a)} en ${e.l} (ganó ${e[e.w]}).`)}return false});
+if(S.ludo>=25)S.st+=2;
+if(S.gf&&S.rel.gf<10){L('💔 '+S.gf.n+' se aleja y terminan.');S.gf=null;delete S.rel.gf}
+if(S.prof==0)S.susp=Math.max(0,S.susp-1);
+if(S.susp>55&&R()<.15*rk){const w=wealth(),k=F(R()*3);if(k==0){pay(Math.min(300,w*.02));L('🙏 Un conocido te pide plata y no te animás a decir que no (−US$300).')}else if(k==1){const l=S.us*.15;S.us-=l;S.pe*=.9;L('🚨 Te roban en casa: tener dólares en mano es un riesgo (−US$'+fm(l)+').')}else{pay(w*.02);L('🧾 Inspección impositiva: multa por tus gastos.')}}
+if(!sk)alarms().forEach(a=>L('⏰ En '+a[0]+' mes'+(a[0]>1?'es':'')+': '+a[1]));
+ach();cl();save()}
+const _mes=mes;mes=function(sk){_mes(sk);mes2(sk)};
+const _ren=ren;ren=function(){_ren();$('#hud').insertAdjacentHTML('beforeend',`<div class=bars style="font-size:11px;color:#9ec9d1"><span>🏠${S.props.length}</span><span>🚗${S.veh.length}</span><span>💼${S.biz.length}</span><span>👥${fm(S.soc.fol)}</span><span>✈️${S.trips}</span><span>👀 ${['discreto','normal','ostentoso'][S.prof]}</span></div>`)};
+const _fin=fin;fin=function(){_fin();const x=$('#mb .x');if(!x)return;x.insertAdjacentHTML('beforebegin',`<table style="margin-top:8px"><tr><th colspan=2>Tu patrimonio y tu vida social</th></tr><tr><td>Inmuebles / negocios</td><td>${S.props.length} / ${S.biz.length}</td></tr><tr><td>Autos y motos</td><td>${S.veh.length}</td></tr><tr><td>Seguidores</td><td>${fm(S.soc.fol)}</td></tr><tr><td>Viajes</td><td>${S.trips}</td></tr><tr><td>Amigos nuevos</td><td>${S.fr.length}</td></tr><tr><td>Pareja</td><td>${S.alt?'Te casaste con '+S.alt+' (no con '+S.names.es+')':'—'}</td></tr><tr><td>Atención</td><td>${F(S.susp)}/100</td></tr></table>`)};
+let slot=+localStorage.getItem('volver98_last')||1;
+save=function(){try{S.slot=slot;localStorage.setItem('volver98_s'+slot,JSON.stringify(S));localStorage.setItem('volver98_last',slot)}catch(e){}};
+const loadSlot=n=>{try{return JSON.parse(localStorage.getItem('volver98_s'+n))}catch(e){return null}};
+const toGame=s=>{S=s;ensure();ply=[PL[S.pos][0],PL[S.pos][1]+30];tgt=null};
+const _nu=nuevo;nuevo=function(d){_nu();ensure();S.dif=d==null?1:d;if(S.dif==0)S.pe=20000;if(S.dif==2)S.pe=3000;ply=[PL.casa[0],PL.casa[1]+30];S.slot=slot;save()};
+function openSlots(){modal(b=>{b.innerHTML='<h3>💾 Partidas</h3><p class=s>Se guarda sola en la ranura activa.</p>';[1,2,3].forEach(n=>{const s=loadSlot(n);bt(b,`${n==slot?'▶ ':''}Partida ${n}: `+(s?`${ds(yr(s.t),mo(s.t))}, ${age(s.t)} años`:'vacía'),()=>{slot=n;$('#md').hidden=true;if(s)toGame(s);else nuevo();ren();if(!s)intro();save()})})})}
+function openIO(){modal(b=>{b.innerHTML='<h3>📤 Exportar / importar</h3><p class=s>Copiá este texto para guardar tu partida, o pegá uno para cargarla.</p><textarea id=io rows=6 style="width:100%;background:#0b1a1f;color:#fff;border:1px solid #24505c;border-radius:5px"></textarea>';$('#io').value=JSON.stringify(S);
+bt(b,'Cargar lo pegado',()=>{try{const s=JSON.parse($('#io').value);if(s.t==null||!PL[s.pos])throw 0;toGame(s);save();$('#md').hidden=true;ren()}catch(e){toast('Texto inválido')}})})}
+function openAch(){modal(b=>{let g={};try{g=JSON.parse(localStorage.getItem('volver98_ach')||'{}')}catch(e){}b.innerHTML='<h3>🏅 Logros</h3>'+ACH.map(a=>`<div class=row>${g[a[0]]?'✅':'🔒'} ${a[1]}</div>`).join('')})}
+function openMenu(){modal(b=>{b.innerHTML='<h3>⚙ Menú</h3>';bt(b,'💾 Partidas',openSlots);bt(b,'🏅 Logros',openAch);bt(b,'✏️ Cambiar nombres',openNames);bt(b,'📤 Exportar / importar',openIO);bt(b,'❓ Cómo se juega',()=>intro(1));bt(b,'🔄 Nueva partida',()=>{if(confirm('¿Empezar de cero en esta ranura?')){nuevo();$('#md').hidden=true;ren();intro()}})})}
+function intro(help){modal(b=>{b.innerHTML=`<h3>🕰️ Volver a 1998</h3><p>Noviembre de 2026. Cerrás los ojos y abrís: marzo de 1998, Montevideo, 17 años y toda tu memoria del futuro.</p><p class=s>• Tocá un lugar del mapa para caminar y actuar. Cada acción gasta ⏳ (3 por mes; un trabajo te saca 1). <b>Pasar mes</b> avanza el tiempo.<br>• Siendo menor ahorrás con changas y con papá/mamá en el banco; a los 18 podés trabajar, jugar, apostar e invertir.<br>• <b>Inmobiliaria</b>: comprá casas para vivir o alquilar, y negocios, a tu nombre o al de otro. <b>Tienda</b>: autos, motos, compus, celulares. Lo que mostrás sube tu <b>atención</b> 🕵️: envidia, pedidos, robos, impuestos. Elegí tu perfil (discreto/ostentoso) en el 📱.<br>• <b>Apuestas</b> a las finales deportivas, <b>viajes</b> con quien quieras, amigos y novias, y redes sociales cuando aparezcan.<br>• El 📱 tiene las <b>alarmas</b> (1-2 meses antes de lo importante) y las redes.<br>• Podés contar tu secreto o callarlo, y saltar años (perdés esos años de acción).<br>• En noviembre de 2026 se compara tu vida con la original.<br>• Precios y sorteos son estilizados/ficticios; cargá los reales en 🎟.</p>`;
+if(!help){b.insertAdjacentHTML('beforeend','<p><b>Dificultad</b> <span class=s>(fácil: más plata y memoria perfecta; difícil: menos plata, memoria borrosa y más riesgos)</span></p>');[['Fácil',0],['Normal',1],['Difícil',2]].forEach(([t,d])=>bt(b,'Empezar '+t,()=>{nuevo(d);$('#md').hidden=true;ren()}));bt(b,'✏️ Nombres',openNames)}})}
+const bc=document.createElement('button');bc.id='bc';bc.textContent='📱';bc.onclick=openCel;$('nav').insertBefore(bc,$('#bn'));$('#bn').onclick=openMenu;
+cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*360/r.width,y=(e.clientY-r.top)*330/r.height;let b=null,bd=1e9;for(const k in PL){const d=Math.hypot(PL[k][0]-x,PL[k][1]-y);if(d<bd){bd=d;b=k}}if(bd<55&&b!=S.pos){S.pos=b;tgt=b;panel()}};
+loop=function(){cx.fillStyle='#2f6b4f';cx.fillRect(0,0,360,330);cx.fillStyle='#3a7a5b';for(let i=0;i<360;i+=20)for(let j=0;j<330;j+=20)if((i+j)%40==0)cx.fillRect(i,j,20,20);
+cx.fillStyle='#8a8f98';[77,152,227].forEach(y=>cx.fillRect(0,y,360,12));[117,242].forEach(x=>cx.fillRect(x,0,12,330));
+for(const k in PL){const[x,y,e,n,c]=PL[k];cx.fillStyle=c;cx.fillRect(x-26,y-18,52,36);cx.fillStyle='rgba(0,0,0,.28)';cx.fillRect(x-26,y-18,52,8);cx.font='20px serif';cx.textAlign='center';cx.fillText(e,x,y+10);cx.font='bold 10px Verdana';cx.fillStyle='#fff';cx.fillText(n,x,y+30)}
+if(tgt){const T=PL[tgt],dx=T[0]-ply[0],dy=T[1]+30-ply[1],d=Math.hypot(dx,dy);if(d<3){tgt=null;panel()}else{ply[0]+=dx/d*3;ply[1]+=dy/d*3;wk+=.4}}
+const x=ply[0],y=ply[1],bb=tgt?Math.sin(wk*3)*2:0;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(x,y,7,3,0,0,7);cx.fill();cx.fillStyle='#2d3a8c';cx.fillRect(x-4,y-8,3,8-Math.max(0,bb));cx.fillRect(x+1,y-8,3,8+Math.min(0,bb));cx.fillStyle='#f2a93b';cx.fillRect(x-5,y-18,10,11);cx.fillStyle='#f2c9a0';cx.beginPath();cx.arc(x,y-23,5,0,7);cx.fill();cx.fillStyle='#3b2a1a';cx.fillRect(x-5,y-29,10,4);
+requestAnimationFrame(loop)};
+(function(){let s=null;try{if(!localStorage.getItem('volver98_s1')&&localStorage.getItem('volver98'))localStorage.setItem('volver98_s1',localStorage.getItem('volver98'));s=loadSlot(slot)}catch(e){}
+if(s&&s.t!=null&&!s.end&&PL[s.pos]){toGame(s);ren();toast('Partida cargada')}else{nuevo();ren();intro()}
 loop();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})})();
 </script></body></html>
